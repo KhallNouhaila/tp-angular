@@ -5,13 +5,16 @@ import { Observable, throwError } from 'rxjs';
 import { of } from 'rxjs';
 import { PageProduct, Product } from '../model/product.model';
 
+import { HttpClient } from '@angular/common/http';
+
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
   private products! : Array<any>;
+  private baseUrl = 'http://localhost:8080/';  
 
-  constructor() {
+  constructor(private http:HttpClient) {
     this.products=[
       {id:UUID.UUID(), name:"Computer", price:6500, promotion:true},
       {id:UUID.UUID(), name:"Printer", price:1200, promotion:false},
@@ -25,24 +28,25 @@ export class ProductService {
     }
    }
 
-   public getAllProducts(): Observable<Array<any>>{
-    let rnd = Math.random();
-    if(rnd<0.1) return throwError(()=>new Error("Internet connexion error"));
-    return of(this.products);
-   }
+   public getAllProducts(): Observable<any>{
+    return this.http.get(`${this.baseUrl}`+'products');  
+    //return this.http.get<Product[]>('');
+}
 
-   public getPageProducts (page : number, size :number) : Observable<PageProduct>{
+   public getPageProducts (page : number, size :number, products:any) : Observable<PageProduct>{
+
     let index =page*size;
-    let totalPages = ~~((this.products.length)/size);
-    if(this.products. length % size !=0) totalPages++;
-    let pageProducts = this.products.slice (index, index+size) ;
+    let totalPages = ~~((products.length)/size);
+    if(products. length % size !=0) totalPages++;
+    let pageProducts = products.slice (index, index+size) ;
     return of( {page: page, size:size, totalPages:totalPages, products : pageProducts});
     }
 
 
-   public deleteProduct(id:string): Observable<boolean>{
-    let products = this.products.filter(p=>p.id!=id);
-    return of(true);
+   public deleteProduct(id:string): Observable<any>{
+    return this.http.delete(`${this.baseUrl}products/delete/${id}`);  
+    /* let products = this.products.filter(p=>p.id!=id);
+    return of(true); */
    }
 
    public setPromotion(id:string): Observable<boolean>{
@@ -67,17 +71,20 @@ export class ProductService {
     return of( {page: page, size:size, totalPages:totalPages, products : pageProducts});
    }
 
-   public addNewProduct(product: Product): Observable<Product>{
-    product.id = UUID.UUID();
+   public addNewProduct(product: Product): Observable<any>{
+    return this.http.post(`${this.baseUrl}`+'products', product);  
+
+   /*  product.id = UUID.UUID();
     this.products.push(product);
-    return of(product);
+    return of(product); */
 
    }
 
-   public getProduct(id : string) : Observable<Product>{
-    let product = this.products.find(p=>p.id == id);
+   public getProduct(id : string) : Observable<any>{
+    return this.http.get(`${this.baseUrl}products/${id}`);  
+    /* let product = this.products.find(p=>p.id == id);
     if(product == undefined) return throwError(()=>new Error("Product not found"));
-    return of(product);
+    return of(product); */
    }
 
    getErrorMessage(fieldName:string, error: ValidationErrors){
@@ -91,9 +98,10 @@ export class ProductService {
 
 }
 
-public UpdateProduct(product:Product): Observable<Product>{
-  this.products=this.products.map(p=>(p.id == product.id )?product:p);
-  return of(product)
+public UpdateProduct(product:Product): Observable<any>{
+  return this.http.put(`${this.baseUrl}products/${product.id}`, product); 
+  /* this.products=this.products.map(p=>(p.id == product.id )?product:p);
+  return of(product) */
 }
 
 

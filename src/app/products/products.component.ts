@@ -40,12 +40,21 @@ export class ProductsComponent implements OnInit {
     for(let i = 0; i<arr.length; i++){
       console.log(arr[i]);
     } */
-    this.productService.getPageProducts(this.currentPage, this.pageSize).subscribe({
+    this.productService.getAllProducts().subscribe({
       next:(data:any)=>{
-        this.products=data.products;
-        this.totalPages=data.totalPages;
-        console.log(this.totalPages);
-      },
+        //this.products=data;
+        this.productService.getPageProducts(this.currentPage, this.pageSize, data).subscribe({
+          next:(data:any)=>{
+            this.products=data.products;
+            this.totalPages=data.totalPages;
+            console.log(this.totalPages);
+          },
+          error: (err)=>{
+            this.errorMessage = err;
+    
+          }
+        })
+            },
       error: (err)=>{
         this.errorMessage = err;
 
